@@ -14,12 +14,7 @@ require 'action_controller' # rspec-rails needs this :(
 
 require 'closure_tree'
 
-log = Logger.new(plugin_test_dir + "/debug.log")
-log.sev_threshold = Logger::DEBUG
-log.datetime_format = "%Y-%m-%d %H:%M:%S"
-log.formatter = Logger::Formatter.new
-
-ActiveRecord::Base.logger = log
+ActiveRecord::Base.logger = Logger.new(plugin_test_dir + "/debug.log")
 
 require 'yaml'
 require 'erb'
