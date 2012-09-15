@@ -178,7 +178,7 @@ module ClosureTree
     end
 
     def self_and_siblings
-      s = self.class.scoped.where(parent_column_sym => parent)
+      s = self.class.where(parent_column_sym => parent)
       quoted_order_column ? s.order(quoted_order_column) : s
     end
 
@@ -503,11 +503,10 @@ module ClosureTree
       # We need to incr the before_siblings to make room for sibling_node:
       if use_update_all
         col = quoted_order_column(false)
-        ct_class.update_all(
-          ["#{col} = #{col} #{add_after ? '+' : '-'} 1", "updated_at = now()"],
-            ["#{quoted_parent_column_name} = ? AND #{col} #{add_after ? '>=' : '<='} ?",
-              ct_parent_id,
-              sibling_node.order_value])
+        where_clause = "#{quoted_parent_column_name} = ? AND #{col} #{add_after ? '>=' : '<='} ?"
+        where_condition = [where_clause, ct_parent_id, sibling_node.order_value]
+        update_clauses = ["#{col} = #{col} #{add_after ? '+' : '-'} 1", "updated_at = now()"]
+        ct_class.where(where_condition).update_all(update_clauses)
       else
         last_value = sibling_node.order_value.to_i
         (add_after ? siblings_after : siblings_before.reverse).each do |ea|
