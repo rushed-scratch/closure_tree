@@ -23,28 +23,28 @@ module ClosureTree
         :foreign_key => parent_column_name,
         :dependent => closure_tree_options[:dependent]
       )
+      
+      order_generations_asc = "#{ quoted_hierarchy_table_name }.generations asc"
 
       has_many :ancestor_hierarchies,
-        lambda {order "#{quoted_hierarchy_table_name}.generations asc"},
+        -> { order order_generations_asc },
         :class_name => hierarchy_class_name,
         :foreign_key => "descendant_id"
-
-      has_many :self_and_ancestors,
+        
+      has_many :self_and_ancestors, -> { order order_generations_asc },
         :through => :ancestor_hierarchies,
-        :source => :ancestor,
-        :order => "#{quoted_hierarchy_table_name}.generations asc"
+        :source => :ancestor
 
-      has_many :descendant_hierarchies,
+      has_many :descendant_hierarchies, -> { order order_generations_asc },
         :class_name => hierarchy_class_name,
-        :foreign_key => "ancestor_id",
-        :order => "#{quoted_hierarchy_table_name}.generations asc"
+        :foreign_key => "ancestor_id"
       # TODO: FIXME: this collection currently ignores sort_order
       # (because the quoted_table_named would need to be joined in to get to the order column)
 
-      has_many :self_and_descendants,
+      has_many :self_and_descendants, -> { order append_order(order_generations_asc) },
         :through => :descendant_hierarchies,
-        :source => :descendant,
-        :order => append_order("#{quoted_hierarchy_table_name}.generations asc")
+        :source => :descendant        
+
     end
 
     # Returns true if this node has no parents.
